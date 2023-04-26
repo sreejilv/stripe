@@ -1,10 +1,28 @@
 var express = require('express');
+require('dotenv').config();
 var bodyParser = require('body-parser')
 const stripe = require('stripe')('sk_test_51MqtAFSDMmpWcTBEt7PDTvSDh72mJDueqpidAOhwpjJK30ATKFq8C4bzs2VaXW6tKoMOV3dwRuySunQcRlb2gMGh00DqYEXmbb');
 var app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(function (req, res, next) {
+    bearerHearder = req.headers['authorization']
+    let bearer = bearerHearder.split(' ')
+    let bearerToken = bearer[1];
+    console.log(process.env.API_KEY)
+    if (bearerToken == process.env.API_KEY) {
+        next()
+    } else {
+        res.status(403).json({
+            status: false,
+            data: "Authentication failed",
+        });
+    }
+
+});
+
 // app.use(bodyParser.urlencoded({
 //     extended: true
 // }));
