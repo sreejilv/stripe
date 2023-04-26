@@ -8,13 +8,20 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(function (req, res, next) {
-    bearerHearder = req.headers['authorization']
-    let bearer = bearerHearder.split(' ')
-    let bearerToken = bearer[1];
-    console.log(process.env.API_KEY)
-    if (bearerToken == process.env.API_KEY) {
-        next()
-    } else {
+
+    try {
+        bearerHearder = req.headers['authorization']
+        let bearer = bearerHearder.split(' ')
+        let bearerToken = bearer[1];
+        if (bearerToken == process.env.API_KEY) {
+            next()
+        } else {
+            res.status(403).json({
+                status: false,
+                data: "Authentication failed",
+            });
+        }
+    } catch (error) {
         res.status(403).json({
             status: false,
             data: "Authentication failed",
