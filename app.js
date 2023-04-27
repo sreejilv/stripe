@@ -1,6 +1,13 @@
 var express = require('express');
 require('dotenv').config();
 var bodyParser = require('body-parser')
+var sendinblue = require('sib-api-v3-sdk');
+
+const client = sendinblue.ApiClient.instance
+const apiKey = client.authentications['api-key']
+apiKey.apiKey = process.env.MAIL_KEY
+
+
 const stripe = require('stripe')('sk_test_51MqtAFSDMmpWcTBEt7PDTvSDh72mJDueqpidAOhwpjJK30ATKFq8C4bzs2VaXW6tKoMOV3dwRuySunQcRlb2gMGh00DqYEXmbb');
 var app = express();
 
@@ -130,7 +137,7 @@ app.post('/create', (req, res) => {
     if (!Object.keys(req.body).length) {
         res.status(500).json({
             status: false,
-            data: req.body,
+            data: 'User details missing',
         });
     } else {
 
@@ -175,46 +182,56 @@ app.post('/create', (req, res) => {
     }
 });
 
+app.post('/send_mail', (req, res) => {
 
+    if (!Object.keys(req.body).length) {
 
-// createConnect();
+        res.status(500).json({
+            status: false,
+            data: 'Datas missing',
+        });
 
-// var retriveCustomer = function () {
-//     stripe.accounts.retrieve('acct_1N0aSpSD9oc6ZSWn', function (err, account) {
-//         if (err) {
-//             console.log(err);
-//         } else if (account) {
-//             console.log(account);
-//         } else {
-//             console.log(account)
-//         }
+    } else {
+        const { email, otp } = req.body;
+        if (!email && !otp) {
+            res.status(500).json({
+                status: false,
+                data: "Insufficiant details",
+            });
+        }
+        const tranEmailApi = new sendinblue.TransactionalEmailsApi()
+        const sender = {
+            email: 'team@tangleoffline.com',
+            name: 'Tangle offline',
+        }
+        const receivers = [
+            { email: email },
+        ]
 
-//     });
-// }
-
-// var deleteCustomer = function () {
-//     stripe.accounts.del('acct_1N0aSpSD9oc6ZSWn', function (err, account) {
-//         if (err) {
-//             console.log(err);
-//         } else if (account) {
-//             console.log(account);
-//         } else {
-//             console.log(account)
-//         }
-
-//     });
-// }
-
-// var retriveCustomer = function () {
-//     stripe.accounts.list({ limit: 3 }, function (err, account) {
-//         if (err) {
-//             console.log(err);
-//         } else if (account) {
-//             console.log(account);
-//         } else {
-//             console.log(account)
-//         }
-
-//     });
-// }
-// retriveCustomer();
+        tranEmailApi
+            .sendTransacEmail({
+                sender,
+                to: receivers,
+                subject: 'Tangle student verification',
+                textContent: `
+            Hi,
+            Your student verification code is {{params.role}}
+        `,
+                htmlContent: `
+            Hi,
+            Your student verification code is {{params.role}}
+                `,
+                params: {
+                    role: otp,
+                },
+            })
+            .then(res.status(200).json({
+                status: true,
+                data: 'mail send'
+            }))
+            .catch(res.status(500).json({
+                status: false,
+                data: "Failed to send mail",
+            }))
+    }
+});
