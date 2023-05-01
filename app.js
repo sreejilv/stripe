@@ -212,7 +212,14 @@ app.post('/create', (req, res) => {
 
 
 
-app.put('/create', (req, res) => {
+app.put('/update/:id', (req, res) => {
+
+    if (req.params.id.search('acct_') == -1) {
+        res.status(500).json({
+            status: false,
+            data: "Invalid account details",
+        });
+    }
 
     if (!Object.keys(req.body).length) {
         res.status(500).json({
@@ -251,6 +258,7 @@ app.put('/create', (req, res) => {
             });
         }
         var param = {
+            id: req.params.id,
             type: 'standard',
             country: country,
             default_currency: currency,
