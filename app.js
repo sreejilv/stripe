@@ -228,50 +228,28 @@ app.put('/update/:id', (req, res) => {
         });
     } else {
 
-        const { email, iban, bis, country, currency } = req.body;
+        var param = {};
 
-        if (!email) {
-            res.status(500).json({
-                status: false,
-                data: "User mail id is required",
-            });
+        if (typeof req.body.email !== 'undefined') {
+            param.email = req.body.email;
         }
-        if (!iban) {
-            res.status(500).json({
-                status: false,
-                data: "Iban id is required",
-            });
-        } if (!bis) {
-            res.status(500).json({
-                status: false,
-                data: "BIS is required",
-            });
-        } if (!country) {
-            res.status(500).json({
-                status: false,
-                data: "COuntry is required",
-            });
-        } if (!currency) {
-            res.status(500).json({
-                status: false,
-                data: "Currency value is required",
-            });
+        if (typeof req.body.iban !== 'undefined') {
+            param.metadata.iban = req.body.iban;
         }
-        var param = {
-            id: req.params.id,
-            type: 'standard',
-            country: country,
-            default_currency: currency,
-            email: email,
-            metadata: {
-                iban: iban,
-                bis: bis,
-            },
-        };
+        if (typeof req.body.bis !== 'undefined') {
+            param.metadata.bis = req.body.bis;
+        }
+        if (typeof req.body.country !== 'undefined') {
+            param.country = req.body.country;
+        }
+        if (typeof req.body.currency !== 'undefined') {
+            param.default_currency = req.body.currency;
+        }
+
 
         try {
 
-            stripe.accounts.create(param, function (err, account) {
+            stripe.accounts.update(req.params.id, param, function (err, account) {
                 console.log(err);
                 if (err) {
                     res.status(500).json({
