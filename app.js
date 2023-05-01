@@ -186,7 +186,6 @@ app.post('/create', (req, res) => {
         try {
 
             stripe.accounts.create(param, function (err, account) {
-                console.log(err);
                 if (err) {
                     res.status(500).json({
                         status: false,
@@ -230,27 +229,28 @@ app.put('/update/:id', (req, res) => {
 
         var param = {};
 
-        if (typeof req.body.email !== 'undefined') {
-            param.email = req.body.email;
-        }
+        // if (typeof req.body.email !== 'undefined') {
+        //     param.email = req.body.email;
+        // }
+        // if (typeof req.body.country !== 'undefined') {
+        //     param.country = req.body.country;
+        // }
+        // if (typeof req.body.currency !== 'undefined') {
+        //     param.default_currency = req.body.currency;
+        // }
         if (typeof req.body.iban !== 'undefined') {
-            param.metadata.iban = req.body.iban;
+            param.iban = req.body.iban;
         }
         if (typeof req.body.bis !== 'undefined') {
-            param.metadata.bis = req.body.bis;
+            param.bis = req.body.bis;
         }
-        if (typeof req.body.country !== 'undefined') {
-            param.country = req.body.country;
-        }
-        if (typeof req.body.currency !== 'undefined') {
-            param.default_currency = req.body.currency;
-        }
+
 
 
         try {
 
-            stripe.accounts.update(req.params.id, param, function (err, account) {
-                console.log(err);
+            stripe.accounts.update(req.params.id, { metadata: param }, function (err, account) {
+
                 if (err) {
                     res.status(500).json({
                         status: false,
