@@ -40,11 +40,14 @@ app.use(function (req, res, next) {
 // app.use(bodyParser.urlencoded({
 //     extended: true
 // }));
+// Pass iban and bis number in meta data, then country NL, currency euro
+
 app.listen(3000, function () { console.log('running'); });
 
 app.get('/accounts', (req, res) => {
     // { limit: 3 }
     try {
+
         stripe.accounts.list({}, function (err, account) {
             if (err) {
                 res.status(500).json({
@@ -58,7 +61,6 @@ app.get('/accounts', (req, res) => {
                 });
             }
         });
-
 
     } catch (error) {
         res.status(500).json({
@@ -141,18 +143,44 @@ app.post('/create', (req, res) => {
         });
     } else {
 
+        const { email, iban, bis, country, currency } = req.body;
 
-        const { email } = req.body;
         if (!email) {
             res.status(500).json({
                 status: false,
                 data: "User mail id is required",
             });
         }
+        if (!iban) {
+            res.status(500).json({
+                status: false,
+                data: "Iban id is required",
+            });
+        } if (!bis) {
+            res.status(500).json({
+                status: false,
+                data: "BIS is required",
+            });
+        } if (!country) {
+            res.status(500).json({
+                status: false,
+                data: "COuntry is required",
+            });
+        } if (!currency) {
+            res.status(500).json({
+                status: false,
+                data: "Currency value is required",
+            });
+        }
         var param = {
             type: 'standard',
-            country: 'IN',
-            email: email
+            country: country,
+            default_currency: currency,
+            email: email,
+            metadata: {
+                iban: iban,
+                bis: bis,
+            },
         };
 
         try {
@@ -181,6 +209,85 @@ app.post('/create', (req, res) => {
 
     }
 });
+
+
+
+app.put('/create', (req, res) => {
+
+    if (!Object.keys(req.body).length) {
+        res.status(500).json({
+            status: false,
+            data: 'User details missing',
+        });
+    } else {
+
+        const { email, iban, bis, country, currency } = req.body;
+
+        if (!email) {
+            res.status(500).json({
+                status: false,
+                data: "User mail id is required",
+            });
+        }
+        if (!iban) {
+            res.status(500).json({
+                status: false,
+                data: "Iban id is required",
+            });
+        } if (!bis) {
+            res.status(500).json({
+                status: false,
+                data: "BIS is required",
+            });
+        } if (!country) {
+            res.status(500).json({
+                status: false,
+                data: "COuntry is required",
+            });
+        } if (!currency) {
+            res.status(500).json({
+                status: false,
+                data: "Currency value is required",
+            });
+        }
+        var param = {
+            type: 'standard',
+            country: country,
+            default_currency: currency,
+            email: email,
+            metadata: {
+                iban: iban,
+                bis: bis,
+            },
+        };
+
+        try {
+
+            stripe.accounts.create(param, function (err, account) {
+                console.log(err);
+                if (err) {
+                    res.status(500).json({
+                        status: false,
+                        data: err,
+                    });
+                } else {
+                    res.status(200).json({
+                        status: true,
+                        data: account
+                    });
+                }
+            });
+
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                data: "Failed to create user details",
+            });
+        }
+
+    }
+});
+
 
 app.post('/send_mail', (req, res) => {
 
