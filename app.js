@@ -6,9 +6,11 @@ var sendinblue = require('sib-api-v3-sdk');
 const client = sendinblue.ApiClient.instance
 const apiKey = client.authentications['api-key']
 apiKey.apiKey = process.env.MAIL_KEY
+//live account
+const stripe = require('stripe')('sk_test_51MjxP2LeU4WXdoCCCNkKoMJivNaQREjrqk2Z8f2fHTIiOXOG54P1ALTJNU0YACgZrvqXzbQVnhR7alnHUqGnWpmH00eO5WzjNX');
 
-
-const stripe = require('stripe')('sk_test_51MqtAFSDMmpWcTBEt7PDTvSDh72mJDueqpidAOhwpjJK30ATKFq8C4bzs2VaXW6tKoMOV3dwRuySunQcRlb2gMGh00DqYEXmbb');
+//test account
+// const stripe = require('stripe')('sk_test_51MqtAFSDMmpWcTBEt7PDTvSDh72mJDueqpidAOhwpjJK30ATKFq8C4bzs2VaXW6tKoMOV3dwRuySunQcRlb2gMGh00DqYEXmbb');
 var app = express();
 
 app.use(express.json());
@@ -143,7 +145,7 @@ app.post('/create', (req, res) => {
         });
     } else {
 
-        const { email, iban, bis, country, currency } = req.body;
+        const { email, country, currency, phone, city, state, address_line1, address_line2, post_code, firstname, lastname, dob_day, dob_month, dob_year } = req.body;
 
         if (!email) {
             res.status(500).json({
@@ -151,36 +153,123 @@ app.post('/create', (req, res) => {
                 data: "User mail id is required",
             });
         }
-        if (!iban) {
+        // if (!iban) {
+        //     res.status(500).json({
+        //         status: false,
+        //         data: "Iban id is required",
+        //     });
+        // } 
+        // if (!bis) {
+        //     res.status(500).json({
+        //         status: false,
+        //         data: "BIS is required",
+        //     });
+        // } 
+        if (!country) {
             res.status(500).json({
                 status: false,
-                data: "Iban id is required",
+                data: "Country is required",
             });
-        } if (!bis) {
+        }
+        if (!city) {
             res.status(500).json({
                 status: false,
-                data: "BIS is required",
+                data: "City is required",
             });
-        } if (!country) {
-            res.status(500).json({
-                status: false,
-                data: "COuntry is required",
-            });
-        } if (!currency) {
+        }
+        if (!currency) {
             res.status(500).json({
                 status: false,
                 data: "Currency value is required",
             });
         }
+        if (!phone) {
+            res.status(500).json({
+                status: false,
+                data: "Phone number is required",
+            });
+        }
+        if (!address_line1) {
+            res.status(500).json({
+                status: false,
+                data: "Address Line 1 is required",
+            });
+        }
+        if (!state) {
+            res.status(500).json({
+                status: false,
+                data: "State is required",
+            });
+        }
+        if (!post_code) {
+            res.status(500).json({
+                status: false,
+                data: "Post code is required",
+            });
+        }
+        if (!firstname) {
+            res.status(500).json({
+                status: false,
+                data: "Firstname is required",
+            });
+        }
+        if (!lastname) {
+            res.status(500).json({
+                status: false,
+                data: "Lastname is required",
+            });
+        }
+        if (!dob_day) {
+            res.status(500).json({
+                status: false,
+                data: "Date of Birth day is required",
+            });
+        }
+        if (!dob_month) {
+            res.status(500).json({
+                status: false,
+                data: "Date of Birth month is required",
+            });
+        }
+        if (!dob_year) {
+            res.status(500).json({
+                status: false,
+                data: "Date of Birth year is required",
+            });
+        }
         var param = {
-            type: 'standard',
+            type: 'custom',
             country: country,
             default_currency: currency,
             email: email,
-            metadata: {
-                iban: iban,
-                bis: bis,
+            business_type: 'individual',
+            individual: {
+                address: { city: city, country: country, line1: address_line1, line2: address_line2, state: state, postal_code: post_code },
+                dob: { day: dob_day, month: dob_month, year: dob_year },
+                email: email,
+                phone: phone,
+                first_name: firstname,
+                last_name: lastname
             },
+            business_profile: {
+                mcc: 7399,
+                product_description: 'Tangle group (activity) creation with payment for activity ticket payment for the creator',
+                support_phone: phone,
+                support_url: 'https://www.tangleoffline.com/',
+                url: 'https://www.tangleoffline.com/',
+            },
+            capabilities: {
+                card_payments: {
+                    requested: true
+                },
+                transfers: {
+                    requested: true
+                }
+            },
+            tos_acceptance: {
+                "date": Math.floor(Date.now() / 1000),
+                "ip": req.ip
+            }
         };
 
         try {
@@ -227,29 +316,34 @@ app.put('/update/:id', (req, res) => {
         });
     } else {
 
-        var param = {};
+        var param = {}; business_profile = {};
 
-        // if (typeof req.body.email !== 'undefined') {
-        //     param.email = req.body.email;
-        // }
+        if (typeof req.body.email !== 'undefined') {
+            param.email = req.body.email;
+        }
         // if (typeof req.body.country !== 'undefined') {
         //     param.country = req.body.country;
         // }
         // if (typeof req.body.currency !== 'undefined') {
         //     param.default_currency = req.body.currency;
         // }
-        if (typeof req.body.iban !== 'undefined') {
-            param.iban = req.body.iban;
+        // if (typeof req.body.iban !== 'undefined') {
+        //     param.pmetadataaram.iban = req.body.iban;
+        // }
+        // if (typeof req.body.bis !== 'undefined') {
+        //     param.metadata.bis = req.body.bis;
+        // }
+        if (typeof req.body.phone !== 'undefined') {
+            business_profile.support_phone = req.body.phone;
         }
-        if (typeof req.body.bis !== 'undefined') {
-            param.bis = req.body.bis;
+
+
+        if (business_profile) {
+            param.business_profile = business_profile;
         }
-
-
-
         try {
-
-            stripe.accounts.update(req.params.id, { metadata: param }, function (err, account) {
+            console.log(param);
+            stripe.accounts.update(req.params.id, param, function (err, account) {
 
                 if (err) {
                     res.status(500).json({
@@ -273,6 +367,342 @@ app.put('/update/:id', (req, res) => {
 
     }
 });
+
+
+app.post('/bank_account', (req, res) => {
+
+    if (!Object.keys(req.body).length) {
+        res.status(500).json({
+            status: false,
+            data: 'User details missing',
+        });
+    } else {
+
+        const { connect_ac_id, iban, bis, country, currency, account_number, account_holder_name } = req.body;
+
+        if (!connect_ac_id) {
+            res.status(500).json({
+                status: false,
+                data: "User account id is required",
+            });
+        }
+        if (!iban) {
+            res.status(500).json({
+                status: false,
+                data: "Iban id is required",
+            });
+        }
+        if (!bis) {
+            res.status(500).json({
+                status: false,
+                data: "BIS is required",
+            });
+        }
+        if (!country) {
+            res.status(500).json({
+                status: false,
+                data: "COuntry is required",
+            });
+        }
+        if (!currency) {
+            res.status(500).json({
+                status: false,
+                data: "Currency value is required",
+            });
+        }
+        if (!account_number) {
+            res.status(500).json({
+                status: false,
+                data: "Account number is required",
+            });
+        }
+        if (!account_holder_name) {
+            res.status(500).json({
+                status: false,
+                data: "Account holder name is required",
+            });
+        }
+
+        var param = {
+            external_account: {
+                object: 'bank_account',
+                country: country,
+                currency: currency,
+                account_holder_name: account_holder_name,
+                account_holder_type: 'individual',
+                account_number: account_number
+            },
+            metadata: {
+                iban: iban,
+                bis: bis,
+            },
+
+        };
+
+        try {
+
+            stripe.accounts.createExternalAccount(connect_ac_id, param, function (err, account) {
+                if (err) {
+                    res.status(500).json({
+                        status: false,
+                        data: err,
+                    });
+                } else {
+                    res.status(200).json({
+                        status: true,
+                        data: account
+                    });
+                }
+            });
+
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                data: "Failed to create account",
+            });
+        }
+
+    }
+});
+
+
+
+app.get('/bank_accounts/:id', (req, res) => {
+
+    if (req.params.id.search('acct_') == -1) {
+        res.status(500).json({
+            status: false,
+            data: "Invalid account details",
+        });
+    }
+
+    try {
+        stripe.accounts.listExternalAccounts(req.params.id, { object: 'bank_account' }, function (err, account) {
+            if (err) {
+                res.status(500).json({
+                    status: false,
+                    data: err,
+                });
+            } else {
+                res.status(200).json({
+                    status: true,
+                    data: account
+                });
+            }
+        });
+
+
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            data: "Failed to retrieve user bank details",
+        });
+    }
+});
+
+
+app.delete('/bank_account', (req, res) => {
+
+    if (!req.body.connect_ac_id) {
+        res.status(500).json({
+            status: false,
+            data: "Invalid account details",
+        });
+    }
+    if (!req.body.account_id) {
+        res.status(500).json({
+            status: false,
+            data: "Account ID is required",
+        });
+    }
+    if (req.body.connect_ac_id.search('acct_') == -1) {
+        res.status(500).json({
+            status: false,
+            data: "Invalid account details",
+        });
+    }
+
+    try {
+        stripe.accounts.deleteExternalAccount(req.body.connect_ac_id, req.body.account_id, function (err, account) {
+            if (err) {
+                res.status(500).json({
+                    status: false,
+                    data: err,
+                });
+            } else {
+                res.status(200).json({
+                    status: true,
+                    data: account
+                });
+            }
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            data: "Failed to delete user bank details",
+        });
+    }
+});
+
+
+
+
+app.post('/create_card', (req, res) => {
+
+    if (!Object.keys(req.body).length) {
+        res.status(500).json({
+            status: false,
+            data: 'User details missing',
+        });
+    } else {
+
+        const { connect_ac_id, iban, bis, currency, card_number, account_holder_name, exp_month, exp_year, cvc } = req.body;
+
+        if (!connect_ac_id) {
+            res.status(500).json({
+                status: false,
+                data: "User account id is required",
+            });
+        }
+        if (!iban) {
+            res.status(500).json({
+                status: false,
+                data: "Iban id is required",
+            });
+        }
+        if (!bis) {
+            res.status(500).json({
+                status: false,
+                data: "BIS is required",
+            });
+        }
+        // if (!country) {
+        //     res.status(500).json({
+        //         status: false,
+        //         data: "COuntry is required",
+        //     });
+        // }
+        if (!currency) {
+            res.status(500).json({
+                status: false,
+                data: "Currency value is required",
+            });
+        }
+        if (!card_number) {
+            res.status(500).json({
+                status: false,
+                data: "Account number is required",
+            });
+        } if (!exp_month) {
+            res.status(500).json({
+                status: false,
+                data: "Expiry month is required",
+            });
+        } if (!exp_year) {
+            res.status(500).json({
+                status: false,
+                data: "Expiry year is required",
+            });
+        }
+        if (!account_holder_name) {
+            res.status(500).json({
+                status: false,
+                data: "Account holder name is required",
+            });
+        }
+        if (!cvc) {
+            res.status(500).json({
+                status: false,
+                data: "CVC is required",
+            });
+        }
+
+
+        // var param = {
+        //     external_account: {
+        //         object: 'card',
+        //         number: card_number,
+        //         exp_month: exp_month,
+        //         exp_year: exp_year,
+        //         currency: currency,
+        //         name: account_holder_name
+        //     },
+        //     metadata: {
+        //         iban: iban,
+        //         bis: bis,
+        //     },
+
+        // };
+
+        try {
+            param = {
+                card: {
+                    number: card_number,
+                    exp_month: exp_month,
+                    exp_year: exp_year,
+                    currency: currency,
+                    // name: account_holder_name,
+                    cvc: cvc,
+                }
+            };
+            stripe.tokens.create(param, function (err, account) {
+                if (err) {
+                    res.status(500).json({
+                        status: false,
+                        data: err,
+                    });
+                } else {
+                    console.log(account);
+                    stripe.accounts.createExternalAccount(connect_ac_id, { external_account: account.id }, function (err, account) {
+                        if (err) {
+                            res.status(500).json({
+                                status: false,
+                                data: err,
+                            });
+                        } else {
+                            res.status(200).json({
+                                status: true,
+                                data: account
+                            });
+                        }
+                    });
+                }
+            });
+
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                data: "Failed to create account",
+            });
+        }
+
+        // try {
+
+        //     stripe.accounts.createExternalAccount(connect_ac_id, param, function (err, account) {
+        //         if (err) {
+        //             res.status(500).json({
+        //                 status: false,
+        //                 data: err,
+        //             });
+        //         } else {
+        //             res.status(200).json({
+        //                 status: true,
+        //                 data: account
+        //             });
+        //         }
+        //     });
+
+        // } catch (error) {
+        //     res.status(500).json({
+        //         status: false,
+        //         data: "Failed to create account",
+        //     });
+        // }
+
+    }
+});
+
 
 
 app.post('/send_mail', (req, res) => {
