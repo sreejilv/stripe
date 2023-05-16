@@ -44,7 +44,7 @@ app.use(function (req, res, next) {
 // }));
 // Pass iban and bis number in meta data, then country NL, currency euro
 
-app.listen(3000, function () { console.log('running'); });
+app.listen(3002, function () { console.log('running'); });
 
 app.get('/accounts', (req, res) => {
     // { limit: 3 }
@@ -703,6 +703,73 @@ app.post('/create_card', (req, res) => {
     }
 });
 
+
+app.post('/payment', (req, res) => {
+
+    if (!Object.keys(req.body).length) {
+        res.status(500).json({
+            status: false,
+            data: 'data missing',
+        });
+    } else {
+
+        const { amount, currency, destination_account } = req.body;
+
+        if (!amount) {
+            res.status(500).json({
+                status: false,
+                data: "Amount is required",
+            });
+        }
+        if (!currency) {
+            res.status(500).json({
+                status: false,
+                data: "Currency code is required",
+            });
+        }
+        if (!destination_account) {
+            res.status(500).json({
+                status: false,
+                data: "Account is required",
+            });
+        }
+
+        var param = {
+            amount: amount,
+            currency: currency,
+            payment_method_types: ['card'],
+            transfer_data: {
+                destination: destination_account,
+            },
+
+        };
+
+        try {
+
+            stripe.paymentIntents.create(param, function (err, account) {
+                if (err) {
+                    res.status(500).json({
+                        status: false,
+                        data: err,
+                    });
+                } else {
+                    console.log(account);
+                    res.status(200).json({
+                        status: true,
+                        data: account
+                    });
+                }
+            });
+
+        } catch (error) {
+            res.status(500).json({
+                status: false,
+                data: "Payment intent failed",
+            });
+        }
+
+    }
+});
 
 
 app.post('/send_mail', (req, res) => {
